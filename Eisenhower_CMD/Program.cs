@@ -1,42 +1,40 @@
-﻿string userInput;
-string[,] users = new string[1,2];
+﻿#region Variables
+using Eisenhower_CMD;
+int userInput;
+Users[] users;
 bool errorBool = false;
 
+#endregion
 
 
-Console.WriteLine("Wecome to the Task Manager App!");
-//create a file with the user login details if it does not exist
-//read the file and write it to the users array
-errorBool = ReadUsersFile();
+Console.WriteLine("Welcome to the Task Manager App!");
+#region get users
+errorBool = ReadUsers();
 if (errorBool) {
     Console.WriteLine("File read successfully");
 } else {
     Console.WriteLine("Error reading file");
 }
+#endregion
+userInput = MultipleChoice(true, "Login", "Register", "Exit");
+LoginMenu(userInput);
 
-Console.WriteLine("Do you want to Login or Register?");
-Console.WriteLine("1. Login");
-Console.WriteLine("2. Register");
-Console.WriteLine("3. Exit");
-//read the one key input from the user and put it in userInput
-userInput = Console.ReadLine();
-Login(userInput);
-
-
-void Login(string userInput) {
+void LoginMenu(int userInput) {
     
     
     switch (userInput)
     {
-        case "1":
+        case 1:
             Console.WriteLine("Login");
             break;
-        case "2":
-            Console.WriteLine("Register");
-            Register();
+        case 2:
+            errorBool = Register();
+            if (!errorBool) {
+                throw new ApplicationException ("Error registering user");
+            }
             break;
-        case "3":
-            Console.WriteLine("Exit");
+        case 3:
+            Exit();
             break;
         default:
             Console.WriteLine("Invalid Input");
@@ -44,38 +42,147 @@ void Login(string userInput) {
     }
 }
 
-bool ReadUsersFile() {
+//TODO: LOGIN FUNCTION
+
+bool ReadUsers() {
+    //TODO: change to only mysql database
     if (!File.Exists(@".\TestFolder\WriteLines2.txt")) {
         using (StreamWriter file = new StreamWriter(@".\TestFolder\WriteLines2.txt")) {
             file.WriteLine("admin,admin");
+            users = new Users[1];
+            users[0] = new Users();
+            users[0].Name = "admin";
+            users[0].Password = "admin";
         }
     }
     string[] lines = File.ReadAllLines(@".\TestFolder\WriteLines2.txt");
+    //resize the users array to the number of lines in the file
+    users = new Users[lines.Length];
     for (int i = 0; i < lines.Length; i++) {
         string[] temp = lines[i].Split(",");
-        users[i,0] = temp[0];
-        users[i,1] = temp[1];
+        users[i] = new Users();
+        users[i].Name = temp[0];
+        users[i].Password = temp[1];
     }
     return true;
 }
 
 bool Register() {
+    
+    Console.WriteLine("Enter your username: ");
+    string username = Console.ReadLine();
+    //check if username already exists and if it exists, ask for another username in a do while loop
     do {
-        Console.WriteLine("Enter your desired username: ");
-        string username = Console.ReadLine();
-        //check if username already exists
-        //check if users is empty
-        if (users[0,0] == null) {
-            break;
-        }
-        for (int i = 0; i < users.Length-1; i++) {
-            if (users[i, 0] == username) {
-                Console.WriteLine("Username already exists");
-                errorBool = false;
+        for (int i = 0; i < users.Length; i++) {
+            if (users[i].Name == username) {
+                Console.WriteLine("Username already exists. Please enter another username: ");
+                username = Console.ReadLine();
             }
         }
-    }while (!errorBool);
-
-    Console.WriteLine("Please enter");
+    } while (username == null);
+    
+    
+    Console.WriteLine("Enter your password: ");
+    string password = Console.ReadLine();
+    //check if the password is null and if it is, ask for another password in a do while loop
+    do {
+        if (password == null) {
+            Console.WriteLine("Password cannot be empty. Please enter a password: ");
+            password = Console.ReadLine();
+        }
+    } while (password == null);
+    //resize the users array to the number of lines in the file + 1
+    Users[] temp = new Users[users.Length + 1];
+    for (int i = 0; i < users.Length; i++) {
+        temp[i] = users[i];
+    }
+    temp[users.Length] = new Users();
+    temp[users.Length].Name = username;
+    temp[users.Length].Password = password;
+    users = temp;
+    using (StreamWriter file = new StreamWriter(@".\TestFolder\WriteLines2.txt")) {
+        for (int i = 0; i < users.Length; i++) {
+            file.WriteLine(users[i].Name + "," + users[i].Password);
+        }
+    }
     return true;
+    
+    
 }
+
+void Exit() {
+    Console.WriteLine("Exiting...");
+    Environment.Exit(0);
+}
+
+int MultipleChoice(bool canCancel, params string[] options) 
+{
+        const int startX = 15;
+        const int startY = 8;
+        const int optionsPerLine = 3;
+        const int spacingPerLine = 14;
+
+        int currentSelection = 0;
+
+        ConsoleKey key;
+
+        Console.CursorVisible = false;
+
+        do
+        {
+            Console.Clear();
+
+            for (int i = 0; i < options.Length; i++)
+            {
+                Console.SetCursorPosition(startX + (i % optionsPerLine) * spacingPerLine, startY + i / optionsPerLine);
+
+                if(i == currentSelection)
+                    Console.ForegroundColor = ConsoleColor.Red;
+
+                Console.Write(options[i]);
+
+                Console.ResetColor();
+            }
+
+            key = Console.ReadKey(true).Key;
+
+            switch (key)
+            {
+                case ConsoleKey.LeftArrow:
+                {
+                    if (currentSelection % optionsPerLine > 0)
+                        currentSelection--;
+                    break;
+                }
+                case ConsoleKey.RightArrow:
+                {
+                    if (currentSelection % optionsPerLine < optionsPerLine - 1)
+                        currentSelection++;
+                    break;
+                }
+                case ConsoleKey.UpArrow:
+                {
+                    if (currentSelection >= optionsPerLine)
+                        currentSelection -= optionsPerLine;
+                    break;
+                }
+                case ConsoleKey.DownArrow:
+                {
+                    if (currentSelection + optionsPerLine < options.Length)
+                        currentSelection += optionsPerLine;
+                    break;
+                }
+                case ConsoleKey.Escape:
+                {
+                    if (canCancel)
+                        return -1;
+                    break;
+                }
+            }
+        } while (key != ConsoleKey.Enter);
+
+        Console.CursorVisible = true;
+
+        return currentSelection;
+}
+
