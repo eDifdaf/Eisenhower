@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Eisenhower_CMD")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+63075266e6bc9f784356b9b33d535c0d187fb617")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+3f71bdb89a070e8067ce3835db33bbc9845cdd85")]
 [assembly: System.Reflection.AssemblyProductAttribute("Eisenhower_CMD")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Eisenhower_CMD")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
