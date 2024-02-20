@@ -8,6 +8,6 @@
 *.sln.docstates
 
 # Rider's files
-.\Eisenhower_CMD\obj\Debug\net8.0\*
+/Eisenhower_CMD/obj/Debug/*
 .rider/
 *.csproj.user
