@@ -1,5 +1,5 @@
 ﻿Wpf_Eisenhower
-1.0.0.0
+
 
 winexe
 C#
@@ -12,7 +12,7 @@ TRACE;DEBUG;NET;NET8_0;NETCOREAPP
 C:\Users\Adrian\Documents\GitHub\Eisenhower\Wpf_Eisenhower\Wpf_Eisenhower\App.xaml
 11407045341
 
-8-1856478542
+6-730108182
 1981451641563
 MainWindow.xaml;
 

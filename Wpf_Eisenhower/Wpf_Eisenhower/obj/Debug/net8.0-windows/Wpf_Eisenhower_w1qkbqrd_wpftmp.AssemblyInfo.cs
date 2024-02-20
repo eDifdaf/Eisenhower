@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Wpf_Eisenhower")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+532391ed0091c4ee9c63449326d3486f79f445c0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+ab963820d5171098c17bf0e8cad2f9049f932fd7")]
 [assembly: System.Reflection.AssemblyProductAttribute("Wpf_Eisenhower")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Wpf_Eisenhower")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
