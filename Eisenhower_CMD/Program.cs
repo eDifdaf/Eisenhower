@@ -1,41 +1,52 @@
-﻿#region Variables
-using Eisenhower_CMD;
+﻿using Eisenhower_CMD;
+
+#region Variables
+
+string filePathTasks = @".\TestFolder\Tasks.txt";
+string filePathUsers = @".\TestFolder\Users.txt";
 int userInput;
 Users[] users;
-bool errorBool = false;
+List<Tasks> tasks = new List<Tasks>();
+bool errorBool = true;
 
 #endregion
 
 
 Console.WriteLine("Welcome to the Task Manager App!");
-#region get users
+Console.ReadLine();
+
+#region get users&tasks
+
 errorBool = ReadUsers();
-if (errorBool) {
+if (!errorBool) {
     Console.WriteLine("File read successfully");
-} else {
+    tasks = Tasks.LoadTasksFromCsv(filePathTasks);
+}
+else {
     Console.WriteLine("Error reading file");
 }
+
 #endregion
+
+
 userInput = MultipleChoice(true, "Login", "Register", "Exit");
 Console.Clear();
-LoginMenu(userInput);
+Menu(filePathTasks);
 
-void LoginMenu(int userInput) {
-    
-    
-    switch (userInput)
-    {
+void Menu(string filePath) {
+    switch (userInput) {
         case 0:
-            Console.WriteLine("Login");
+            LoginMenu.Login(users);
             break;
         case 1:
-            errorBool = Register();
-            if (!errorBool) {
-                throw new ApplicationException ("Error registering user");
+            errorBool = LoginMenu.Register(users);
+            if (errorBool) {
+                throw new ApplicationException("Error registering user");
             }
+            errorBool = true;
             break;
         case 2:
-            Exit();
+            LoginMenu.Exit(tasks, filePath);
             break;
         default:
             Console.WriteLine("Invalid Input");
@@ -45,12 +56,74 @@ void LoginMenu(int userInput) {
 
 Console.ReadLine();
 
-//TODO: LOGIN FUNCTION
+#region Methodes
+
+int MultipleChoice(bool canCancel, params string[] options) {
+    const int startX = 15;
+    const int startY = 8;
+    const int optionsPerLine = 3;
+    const int spacingPerLine = 14;
+
+    int currentSelection = 0;
+
+    ConsoleKey key;
+
+    Console.CursorVisible = false;
+
+    do {
+        Console.Clear();
+
+        for (int i = 0; i < options.Length; i++) {
+            Console.SetCursorPosition(startX + (i % optionsPerLine) * spacingPerLine, startY + i / optionsPerLine);
+
+            if (i == currentSelection)
+                Console.ForegroundColor = ConsoleColor.Red;
+
+            Console.Write(options[i]);
+
+            Console.ResetColor();
+        }
+
+        key = Console.ReadKey(true).Key;
+
+        switch (key) {
+            case ConsoleKey.LeftArrow: {
+                if (currentSelection % optionsPerLine > 0)
+                    currentSelection--;
+                break;
+            }
+            case ConsoleKey.RightArrow: {
+                if (currentSelection % optionsPerLine < optionsPerLine - 1)
+                    currentSelection++;
+                break;
+            }
+            case ConsoleKey.UpArrow: {
+                if (currentSelection >= optionsPerLine)
+                    currentSelection -= optionsPerLine;
+                break;
+            }
+            case ConsoleKey.DownArrow: {
+                if (currentSelection + optionsPerLine < options.Length)
+                    currentSelection += optionsPerLine;
+                break;
+            }
+            case ConsoleKey.Escape: {
+                if (canCancel)
+                    return -1;
+                break;
+            }
+        }
+    } while (key != ConsoleKey.Enter);
+
+    Console.CursorVisible = true;
+
+    return currentSelection;
+}
 
 bool ReadUsers() {
     //TODO: change to only mysql database
-    if (!File.Exists(@".\TestFolder\WriteLines2.txt")) {
-        using (StreamWriter file = new StreamWriter(@".\TestFolder\WriteLines2.txt")) {
+    if (!File.Exists(filePathUsers)) {
+        using (StreamWriter file = new StreamWriter(filePathUsers)) {
             file.WriteLine("admin,admin");
             users = new Users[1];
             users[0] = new Users();
@@ -58,7 +131,8 @@ bool ReadUsers() {
             users[0].Password = "admin";
         }
     }
-    string[] lines = File.ReadAllLines(@".\TestFolder\WriteLines2.txt");
+
+    string[] lines = File.ReadAllLines(filePathUsers);
     //resize the users array to the number of lines in the file
     users = new Users[lines.Length];
     for (int i = 0; i < lines.Length; i++) {
@@ -67,125 +141,8 @@ bool ReadUsers() {
         users[i].Name = temp[0];
         users[i].Password = temp[1];
     }
-    return true;
+
+    return false;
 }
 
-bool Register() {
-    
-    Console.WriteLine("Enter your username: ");
-    string username = Console.ReadLine();
-    //check if username already exists and if it exists, ask for another username in a do while loop
-    do {
-        for (int i = 0; i < users.Length; i++) {
-            if (users[i].Name == username) {
-                Console.WriteLine("Username already exists. Please enter another username: ");
-                username = Console.ReadLine();
-            }
-        }
-    } while (username == null);
-    
-    
-    Console.WriteLine("Enter your password: ");
-    string password = Console.ReadLine();
-    //check if the password is null and if it is, ask for another password in a do while loop
-    do {
-        if (password == null) {
-            Console.WriteLine("Password cannot be empty. Please enter a password: ");
-            password = Console.ReadLine();
-        }
-    } while (password == null);
-    //resize the users array to the number of lines in the file + 1
-    Users[] temp = new Users[users.Length + 1];
-    for (int i = 0; i < users.Length; i++) {
-        temp[i] = users[i];
-    }
-    temp[users.Length] = new Users();
-    temp[users.Length].Name = username;
-    temp[users.Length].Password = password;
-    users = temp;
-    using (StreamWriter file = new StreamWriter(@".\TestFolder\WriteLines2.txt")) {
-        for (int i = 0; i < users.Length; i++) {
-            file.WriteLine(users[i].Name + "," + users[i].Password);
-        }
-    }
-    return true;
-    
-    
-}
-
-void Exit() {
-    Console.WriteLine("Exiting...");
-    Environment.Exit(0);
-}
-
-int MultipleChoice(bool canCancel, params string[] options) 
-{
-        const int startX = 15;
-        const int startY = 8;
-        const int optionsPerLine = 3;
-        const int spacingPerLine = 14;
-
-        int currentSelection = 0;
-
-        ConsoleKey key;
-
-        Console.CursorVisible = false;
-
-        do
-        {
-            Console.Clear();
-
-            for (int i = 0; i < options.Length; i++)
-            {
-                Console.SetCursorPosition(startX + (i % optionsPerLine) * spacingPerLine, startY + i / optionsPerLine);
-
-                if(i == currentSelection)
-                    Console.ForegroundColor = ConsoleColor.Red;
-
-                Console.Write(options[i]);
-
-                Console.ResetColor();
-            }
-
-            key = Console.ReadKey(true).Key;
-
-            switch (key)
-            {
-                case ConsoleKey.LeftArrow:
-                {
-                    if (currentSelection % optionsPerLine > 0)
-                        currentSelection--;
-                    break;
-                }
-                case ConsoleKey.RightArrow:
-                {
-                    if (currentSelection % optionsPerLine < optionsPerLine - 1)
-                        currentSelection++;
-                    break;
-                }
-                case ConsoleKey.UpArrow:
-                {
-                    if (currentSelection >= optionsPerLine)
-                        currentSelection -= optionsPerLine;
-                    break;
-                }
-                case ConsoleKey.DownArrow:
-                {
-                    if (currentSelection + optionsPerLine < options.Length)
-                        currentSelection += optionsPerLine;
-                    break;
-                }
-                case ConsoleKey.Escape:
-                {
-                    if (canCancel)
-                        return -1;
-                    break;
-                }
-            }
-        } while (key != ConsoleKey.Enter);
-
-        Console.CursorVisible = true;
-
-        return currentSelection;
-}
-
+#endregion
