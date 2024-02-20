@@ -17,6 +17,7 @@ if (errorBool) {
 }
 #endregion
 userInput = MultipleChoice(true, "Login", "Register", "Exit");
+Console.Clear();
 LoginMenu(userInput);
 
 void LoginMenu(int userInput) {
@@ -24,16 +25,16 @@ void LoginMenu(int userInput) {
     
     switch (userInput)
     {
-        case 1:
+        case 0:
             Console.WriteLine("Login");
             break;
-        case 2:
+        case 1:
             errorBool = Register();
             if (!errorBool) {
                 throw new ApplicationException ("Error registering user");
             }
             break;
-        case 3:
+        case 2:
             Exit();
             break;
         default:
@@ -41,6 +42,8 @@ void LoginMenu(int userInput) {
             break;
     }
 }
+
+Console.ReadLine();
 
 //TODO: LOGIN FUNCTION
 
