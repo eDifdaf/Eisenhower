@@ -239,6 +239,7 @@ namespace Eisenhower_CMD {
                         };
                         tasks.Add(task);
                     }
+                    reader.Dispose();
                     reader.Close();
                 }
             }
