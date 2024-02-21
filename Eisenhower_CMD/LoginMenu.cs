@@ -1,46 +1,53 @@
 ﻿namespace Eisenhower_CMD;
 
 public class LoginMenu {
-    public static void Menu(string filePathUsers, int userInput, Users[] users, List<Tasks> tasks, string filePathTasks) {
+    public static void LMenu(string filePathUsers, int userInput, Users[] users, List<Tasks> tasks,
+        string filePathTasks, ref string currentLoggedInUser) {
         switch (userInput) {
             case 0:
-                LoginMenu.ListUsers(users);
-                userInput = LoginMenu.MultipleChoice(true, "List Users", "Login", "Register", "Exit");
+                ListUsers(users, filePathUsers);
+                userInput = MultipleChoice(true, "List Users", "Login", "Register", "Exit");
                 Console.Clear();
-                Menu(filePathUsers, userInput, users, tasks, filePathTasks);
+                LMenu(filePathUsers, userInput, users, tasks, filePathTasks, ref currentLoggedInUser);
                 break;
             case 1:
-                LoginMenu.Login(users);
-                TasksMenu.Menu(tasks, filePathTasks, filePathUsers, users);
+                bool failedLogin = true;
+                failedLogin = Login(users, ref currentLoggedInUser);
+                if (!failedLogin) {
+                    TasksMenu.ListTasksMenu(tasks, filePathTasks, filePathUsers, users, ref currentLoggedInUser);
+                }
+
                 break;
             case 2:
                 bool errorBool = true;
-                errorBool = LoginMenu.Register(users, filePathUsers);
+                errorBool = Register(users, filePathUsers, ref currentLoggedInUser);
                 if (errorBool) {
                     throw new ApplicationException("Error registering user");
                 }
-                TasksMenu.Menu(tasks, filePathTasks, filePathUsers, users);
+
+                TasksMenu.ListTasksMenu(tasks, filePathTasks, filePathUsers, users, ref currentLoggedInUser);
                 break;
             case 3:
-                LoginMenu.Exit(tasks, filePathTasks);
+                Exit(tasks, filePathTasks);
                 break;
             default:
                 Console.WriteLine("Invalid Input");
                 break;
         }
     }
-    public static void ListUsers(Users[] users) {
-        Console.WriteLine("Listing users...");
-        Console.WriteLine("Users:");
+
+    public static void ListUsers(Users[] users, string filePathUsers) {
+        ReadUsers(ref users, filePathUsers);
+        Console.WriteLine("Users: \n");
         for (int i = 0; i < users.Length; i++) {
-            Console.WriteLine(users[i].Name);
+            Console.WriteLine("\t" + i +". " + users[i].Name);
         }
 
-        Console.WriteLine("Press any key to continue...");
+        Console.WriteLine("\nPress any key to continue...");
         Console.ReadLine();
     }
 
-    public static bool Login(Users[] users) {
+    public static bool Login(Users[] users, ref string currentLoggedInUser) {
         //make sure the input is valid
         Console.WriteLine("Enter your username: ");
         string username = Console.ReadLine();
@@ -58,17 +65,7 @@ public class LoginMenu {
 
         for (int i = 0; i < users.Length; i++) {
             if (users[i].Name == username && users[i].Password == password) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    private static bool Login(string username, string password, Users[] users) {
-        for (int i = 0; i < users.Length; i++) {
-            if (users[i].Name == username && users[i].Password == password) {
-                username = users[i].Name;
+                currentLoggedInUser = username;
                 return false;
             }
         }
@@ -76,31 +73,45 @@ public class LoginMenu {
         return true;
     }
 
-    public static bool Register(Users[] users, string filePathUsers) {
+    private static bool Login(string username, string password, Users[] users, ref string currentLoggedInUser) {
+        for (int i = 0; i < users.Length; i++) {
+            if (users[i].Name == username && users[i].Password == password) {
+                username = users[i].Name;
+                currentLoggedInUser = username;
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    public static bool Register(Users[] users, string filePathUsers, ref string currentLoggedInUser) {
+        string username = "";
         Console.WriteLine("Enter your username: ");
-        string username = Console.ReadLine();
-        //check if username already exists and if it exists, ask for another username in a do while loop
         do {
+            username = Console.ReadLine();
             for (int i = 0; i < users.Length; i++) {
                 if (users[i].Name == username) {
                     Console.WriteLine("Username already exists. Please enter another username: ");
-                    username = Console.ReadLine();
                 }
             }
-        } while (username == null);
 
+            if (username.Any(c => !char.IsLetterOrDigit(c))) {
+                Console.WriteLine("Username can only contain letters and numbers. Please enter another username: ");
+                username = null;
+            }
+        } while (username == null || username=="");
 
-        Console.WriteLine("Enter your password: ");
-        string password = Console.ReadLine();
-        //check if the password is null and if it is, ask for another password in a do while loop
+        string password;
+        Console.WriteLine("Enter your password (can only contain letters and numbers): ");
         do {
-            if (password == null) {
-                Console.WriteLine("Password cannot be empty. Please enter a password: ");
-                password = Console.ReadLine();
+            password = Console.ReadLine();
+            if (password.Any(c => !char.IsLetterOrDigit(c))) {
+                Console.WriteLine("Password can only contain letters and numbers. Please enter another password: ");
+                password = null;
             }
         } while (password == null);
 
-        //resize the users array to the number of lines in the file + 1
         Users[] temp = new Users[users.Length + 1];
         for (int i = 0; i < users.Length; i++) {
             temp[i] = users[i];
@@ -110,13 +121,14 @@ public class LoginMenu {
         temp[users.Length].Name = username;
         temp[users.Length].Password = password;
         users = temp;
+        
         using (StreamWriter file = new StreamWriter(filePathUsers)) {
             for (int i = 0; i < users.Length; i++) {
                 file.WriteLine(users[i].Name + "," + users[i].Password);
             }
         }
 
-        return Login(username, password, users);
+        return Login(username, password, users, ref currentLoggedInUser);
     }
 
     public static void Exit(List<Tasks> tasks, string filePath) {
@@ -128,8 +140,6 @@ public class LoginMenu {
     public static int MultipleChoice(bool canCancel, params string[] options) {
         const int startX = 15;
         const int startY = 8;
-        const int optionsPerLine = 3;
-        const int spacingPerLine = 14;
 
         int currentSelection = 0;
 
@@ -141,7 +151,7 @@ public class LoginMenu {
             Console.Clear();
 
             for (int i = 0; i < options.Length; i++) {
-                Console.SetCursorPosition(startX + (i % optionsPerLine) * spacingPerLine, startY + i / optionsPerLine);
+                Console.SetCursorPosition(startX, startY + i);
 
                 if (i == currentSelection)
                     Console.ForegroundColor = ConsoleColor.Red;
@@ -154,27 +164,17 @@ public class LoginMenu {
             key = Console.ReadKey(true).Key;
 
             switch (key) {
-                case ConsoleKey.LeftArrow: {
-                    if (currentSelection % optionsPerLine > 0)
+                case ConsoleKey.UpArrow: {
+                    if (currentSelection > 0)
                         currentSelection--;
                     break;
                 }
-                case ConsoleKey.RightArrow: {
-                    if (currentSelection % optionsPerLine < optionsPerLine - 1)
+                case ConsoleKey.DownArrow: {
+                    if (currentSelection < options.Count() - 1)
                         currentSelection++;
                     break;
                 }
-                case ConsoleKey.UpArrow: {
-                    if (currentSelection >= optionsPerLine)
-                        currentSelection -= optionsPerLine;
-                    break;
-                }
-                case ConsoleKey.DownArrow: {
-                    if (currentSelection + optionsPerLine < options.Length)
-                        currentSelection += optionsPerLine;
-                    break;
-                }
-                case ConsoleKey.Escape: {
+                case ConsoleKey.C: {
                     if (canCancel)
                         return -1;
                     break;
@@ -185,5 +185,35 @@ public class LoginMenu {
         Console.CursorVisible = true;
 
         return currentSelection;
+    }
+
+    public static bool UserExists(string username, Users[] users) {
+        for (int i = 0; i < users.Length; i++) {
+            if (users[i].Name == username) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public static void ReadUsers( ref Users[] users, string filePathUsers) {
+        //TODO: change to only mysql database
+        if (!File.Exists(filePathUsers)) {
+            using (StreamWriter file = new StreamWriter(filePathUsers)) {
+                file.WriteLine("admin,admin");
+                file.Flush();
+                file.Close();
+            }
+        }
+
+        string[] lines = File.ReadAllLines(filePathUsers);
+        users = new Users[lines.Length];
+        for (int i = 0; i < lines.Length; i++) {
+            string[] temp = lines[i].Split(",");
+            users[i] = new Users();
+            users[i].Name = temp[0];
+            users[i].Password = temp[1];
+        }
     }
 }

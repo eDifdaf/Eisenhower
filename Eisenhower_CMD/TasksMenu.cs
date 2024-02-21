@@ -1,7 +1,8 @@
 ﻿namespace Eisenhower_CMD;
 
 public class TasksMenu {
-    public static void Menu(List<Tasks> tasks, string filePathTaks, string filePathUsers, Users[] users) {
+    public static void ListTasksMenu(List<Tasks> tasks, string filePathTaks, string filePathUsers, Users[] users,
+        ref string currentLoggedInUser) {
         const int startX = 0;
         const int startY = 8;
 
@@ -13,24 +14,34 @@ public class TasksMenu {
 
         do {
             Console.Clear();
-            Console.WriteLine("Press C to create a new task");
-            Console.WriteLine("Press E to edit a task");
-            Console.WriteLine("Press Q to to go back to the main menu");
-            Console.WriteLine("Press M to show takss that are assigned to you");
+            Console.WriteLine("C - Create new task");
+            Console.WriteLine("E - Edit task");
+            Console.WriteLine("D - Delete task");
+            Console.WriteLine("Q - Quit to the main menu");
+            Console.WriteLine("M - Sort to show MY tasks");
+            Console.WriteLine("A - Show ALL tasks (sorted by creation date)");
+            Console.WriteLine("S - Sort by status");
 
             if (tasks.Count() == 0) {
                 Console.WriteLine("No tasks to display");
             }
             else {
-                Console.WriteLine("Name\tImportance\tCompleted");
+                Console.ForegroundColor = ConsoleColor.Black;
+                Console.BackgroundColor = ConsoleColor.Red;
+                Console.WriteLine("Nr\tName\t\tImportance\tCompleted\tUser");
+
                 for (int i = 0; i < tasks.Count(); i++) {
+                    Console.ResetColor();
                     Console.SetCursorPosition(startX, startY + i);
 
-                    if (i == currentSelection)
-                        Console.ForegroundColor = ConsoleColor.Red;
-                    string completed = tasks[i].isCompleted ? "YES" : "NO";
-                    Console.WriteLine(tasks[i].Name + "\t" + tasks[i].Importance + "\t" +
-                                      completed);
+                    if (i == currentSelection) {
+                        Console.ForegroundColor = ConsoleColor.Black;
+                        Console.BackgroundColor = ConsoleColor.Gray;
+                    }
+                    
+                    Console.WriteLine(tasks[i].ID + "\t" + tasks[i].Name + "\t" + tasks[i].Importance + "\t" + "\t" + (tasks[i].isCompleted
+                        ? "YES"
+                        : "NO")+ "\t\t" + tasks[i].UserName);
 
                     Console.ResetColor();
                 }
@@ -51,21 +62,51 @@ public class TasksMenu {
                 }
                 case ConsoleKey.Enter: {
                     DisplayTask(currentSelection, tasks);
-                    Menu(tasks, filePathTaks, filePathUsers, users);
+                    ListTasksMenu(tasks, filePathTaks, filePathUsers, users, ref currentLoggedInUser);
                     break;
                 }
                 case ConsoleKey.C: {
-                    Tasks.CreateTask(tasks, filePathTaks, users);
+                    Tasks.CreateTask(tasks, filePathTaks, users, ref currentLoggedInUser);
                     break;
                 }
                 case ConsoleKey.E: {
-                    Tasks.EditTasksToCsv(tasks, filePathTaks, currentSelection, users);
+                    Tasks.EditTasks(tasks, filePathTaks, currentSelection, users, ref currentLoggedInUser);
+                    break;
+                }
+                case ConsoleKey.D: {
+                    Console.WriteLine("Are you sure you want to delete this task? (Y/N)");
+                    int userInput = LoginMenu.MultipleChoice(true, "Yes", "No");
+                    if (userInput == 0) {
+                        Tasks.DeleteTask(tasks, filePathTaks, currentSelection, users, ref currentLoggedInUser);
+                    }
+
                     break;
                 }
                 case ConsoleKey.Q: {
                     int userInput = LoginMenu.MultipleChoice(true, "List Users", "Login", "Register", "Exit");
                     Console.Clear();
-                    LoginMenu.Menu(filePathUsers, userInput, users, tasks, filePathTaks);
+                    currentLoggedInUser = "";
+                    //TODO: Load Users again
+                    LoginMenu.LMenu(filePathUsers, userInput, users, tasks, filePathTaks, ref currentLoggedInUser);
+                    break;
+                }
+                case ConsoleKey.M: {
+                    string currUser = currentLoggedInUser;
+                    var currentUserTasks = tasks.Where(task => task.UserName == currUser).ToList();
+                    tasks.RemoveAll(task => task.UserName == currUser);
+                    tasks.InsertRange(0, currentUserTasks);
+
+                    ListTasksMenu(tasks, filePathTaks, filePathUsers, users, ref currentLoggedInUser);
+                    break;
+                }
+                case ConsoleKey.A: {
+                    tasks = tasks.OrderBy(task => task.CreationDate).ToList();
+                    ListTasksMenu(tasks, filePathTaks, filePathUsers, users, ref currentLoggedInUser);
+                    break;
+                }
+                case ConsoleKey.S: {
+                    tasks = tasks.OrderBy(task => task.isCompleted).ThenBy(task => task.CreationDate).ToList();
+                    ListTasksMenu(tasks, filePathTaks, filePathUsers, users, ref currentLoggedInUser);
                     break;
                 }
             }
@@ -74,15 +115,16 @@ public class TasksMenu {
         Console.CursorVisible = true;
     }
 
+
     public static void DisplayTask(int index, List<Tasks> tasks) {
         Console.Clear();
-        Console.WriteLine("Name: " + tasks[index].Name);
-        Console.WriteLine("Description: " + tasks[index].Description);
-        Console.WriteLine("Creation Date: " + tasks[index].CreationDate);
-        Console.WriteLine("Due Date: " + tasks[index].DueDate);
-        Console.WriteLine("User Name: " + tasks[index].UserName);
-        Console.WriteLine("Importance: " + tasks[index].Importance);
-        Console.WriteLine("Is Completed: " + tasks[index].isCompleted);
+        Console.WriteLine("Name:\t\t" + tasks[index].Name);
+        Console.WriteLine("Description:\t" + tasks[index].Description);
+        Console.WriteLine("Creation Date:\t" + tasks[index].CreationDate);
+        Console.WriteLine("Due Date:\t" + tasks[index].DueDate);
+        Console.WriteLine("User Name:\t" + tasks[index].UserName);
+        Console.WriteLine("Importance:\t" + tasks[index].Importance);
+        Console.WriteLine("Is Completed:\t" + tasks[index].isCompleted);
         Console.ReadLine();
     }
 }
