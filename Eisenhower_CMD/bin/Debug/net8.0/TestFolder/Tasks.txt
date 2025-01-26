@@ -1,5 +1,0 @@
-Name,Description,CreationDate,DueDate,UserName,Password,Importance
-sda     ,asd,21.02.2024 15:43:07,21.02.2024 15:43:00,admin,TWO, False, 1
-myasdas ,asdasdasdasdadsa,21.02.2024 15:46:31,21.02.2024 15:46:10,admin,SEVEN, False, 4
-test    ,asdasd,21.02.2024 15:44:50,21.02.2024 15:44:42,Difdaf,THREE, False, 2
-test    ,asdasd,21.02.2024 15:45:42,21.02.2024 15:45:30,Difdaf,TWO, False, 3

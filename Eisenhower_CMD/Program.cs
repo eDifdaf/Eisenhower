@@ -21,7 +21,7 @@ Console.ReadLine();
 #region get users&tasks
 
 LoginMenu.ReadUsers(ref users, filePathUsers);
-tasks = Tasks.LoadTasksFromCsv(filePathTasks);
+tasks = Tasks.LoadTasksFromCsv(filePathTasks);  //TODO was wenn nicht da?
 
 #endregion
 

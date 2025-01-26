@@ -11,3 +11,5 @@
 /Eisenhower_CMD/obj/Debug/*
 .rider/
 *.csproj.user
+
+.vs
