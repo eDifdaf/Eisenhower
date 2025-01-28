@@ -197,7 +197,7 @@ public class LoginMenu {
         return false;
     }
 
-    public static void ReadUsers( ref Users[] users, string filePathUsers) {
+    public static void ReadUsers(ref Users[] users, string filePathUsers) {
         //TODO: change to only mysql database
         if (!File.Exists(filePathUsers)) {
             using (StreamWriter file = new StreamWriter(filePathUsers)) {
@@ -215,5 +215,17 @@ public class LoginMenu {
             users[i].Name = temp[0];
             users[i].Password = temp[1];
         }
+    }
+
+    public static void ReadTasks(ref List<Tasks> tasks, string filePathTasks){
+        if (!File.Exists(filePathTasks)) {
+            using (StreamWriter file = new StreamWriter(filePathTasks)) {
+                file.WriteLine("");
+                file.Flush();
+                file.Close();
+            }
+        }
+
+        Tasks.LoadTasksFromCsv();
     }
 }

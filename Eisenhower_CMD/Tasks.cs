@@ -217,7 +217,7 @@ namespace Eisenhower_CMD {
 
         public static List<Tasks> LoadTasksFromCsv(string filePath) {
             List<Tasks> tasks = new List<Tasks>();
-            //check if the file exists othewise create it
+            //TODO: rewrite, move file logic to loginmenu.readtasks
             if (!File.Exists(filePath)) {
                 File.Create(filePath);
             }
